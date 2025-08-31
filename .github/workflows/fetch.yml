@@ -1,7 +1,7 @@
 name: fetch-kis
 on:
   schedule:
-    - cron: "*/2 * * * *"   # 2분마다 실행
+    - cron: "*/1 * * * *"   # 2분마다 실행
   workflow_dispatch: {}      # 수동 실행 버튼
 jobs:
   run:
