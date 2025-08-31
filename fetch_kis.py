@@ -56,7 +56,7 @@ def get_price(token, ticker):
     except Exception as e:
         raise RuntimeError(f"[KIS][price][{ticker}] failed: {e}")
 
-def upstash_hset_pipeline(key, mapping: dict, ttl_sec: int = 180):
+def upstash_hset_pipeline(key, mapping: dict, ttl_sec: int = 500):
     # 값은 모두 문자열로!
     flat = []
     for k, v in mapping.items():
