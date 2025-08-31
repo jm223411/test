@@ -166,7 +166,7 @@ def kis_get_daily(token: str, ticker: str, count: int = 60) -> List[Dict]:
         "authorization": f"Bearer {token}",
         "appkey": APP_KEY,
         "appsecret": APP_SECRET,
-        "tr_id": TR_DAILY,        # 기본: FHKST03010100
+        "tr_id": TR_DAILY,        # 기본값: FHKST03010100 (환경에 맞게 유지)
         "custtype": "P",
         "content-type": "application/json; charset=utf-8",
         "accept": "application/json",
@@ -174,26 +174,16 @@ def kis_get_daily(token: str, ticker: str, count: int = 60) -> List[Dict]:
     params = {
         "fid_cond_mrkt_div_code": "J",
         "fid_input_iscd": ticker,
-        "fid_period_div_code": "D",   # ★ 일봉 (주: "W", 월: "M", 년: "Y")
-        "fid_org_adj_prc": "0",
+        "fid_period_div_code": "D",   # ★ 누락되어 있던 부분 (일/주/월/년 구분)
+        "fid_org_adj_prc": "0",       # 필요 시 "1"
     }
     r = sess.get(url, headers=headers, params=params, timeout=20)
     if r.status_code != 200:
         print(f"[KIS][daily][{ticker}] HTTP {r.status_code} {r.text[:300]}", file=sys.stderr)
         r.raise_for_status()
+    rows = r.json().get("output", []) or []
 
-    j = r.json()
-    # output, output1, output2 중 있는 걸 가져오기
-    rows = (
-        j.get("output")
-        or j.get("output1")
-        or j.get("output2")
-        or []
-    )
-    if not rows:
-        print(f"[KIS][daily][{ticker}] empty body: {j}", file=sys.stderr)
-
-    # 오래된 → 최근 정렬
+    # 오래된→최근 정렬 (날짜 키가 있다면)
     try:
         rows.sort(key=lambda d: d.get("stck_bsop_date") or d.get("bas_dt"))
     except Exception:
