@@ -1,0 +1,20 @@
+name: fetch-kis
+on:
+  schedule:
+    - cron: "*/2 * * * *"   # 2분마다 실행
+  workflow_dispatch: {}      # 수동 실행 버튼
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install requests
+      - env:
+          KIS_APP_KEY:    ${{ secrets.KIS_APP_KEY }}
+          KIS_APP_SECRET: ${{ secrets.KIS_APP_SECRET }}
+          UPSTASH_URL:    ${{ secrets.UPSTASH_URL }}
+          UPSTASH_TOKEN:  ${{ secrets.UPSTASH_TOKEN }}
+          TICKERS: "005930,000660"
+        run: python fetch_kis.py
