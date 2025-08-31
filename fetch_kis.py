@@ -57,22 +57,23 @@ def get_price(token, ticker):
         raise RuntimeError(f"[KIS][price][{ticker}] failed: {e}")
 
 def upstash_hset_pipeline(key, mapping: dict, ttl_sec: int = 180):
-    # /pipeline으로 HSET + EXPIRE 한번에
-    cmds = [["HSET", key] + [kv for item in mapping.items() for kv in item],
-            ["EXPIRE", key, str(ttl_sec)]]
-    try:
-        r = requests.post(
-            f"{UP_URL}/pipeline",
-            headers={"Authorization": f"Bearer {UP_TOKEN}", "Content-Type": "application/json"},
-            json={"commands": cmds},
-            timeout=15,
-        )
-        if r.status_code != 200:
-            print(f"[UPSTASH] HTTP {r.status_code} {r.text[:300]}", file=sys.stderr)
-            r.raise_for_status()
-        return True
-    except Exception as e:
-        raise RuntimeError(f"[UPSTASH] failed: {e}")
+    # 값은 모두 문자열로!
+    flat = []
+    for k, v in mapping.items():
+        flat.append(k)
+        flat.append(str(v))
+    body = [
+        ["HSET", key] + flat,
+        ["EXPIRE", key, str(ttl_sec)]
+    ]
+    r = requests.post(
+        f"{UP_URL}/pipeline",
+        headers={"Authorization": f"Bearer {UP_TOKEN}", "Content-Type": "application/json"},
+        json=body,               # <<< 배열 본문
+        timeout=15,
+    )
+    if r.status_code != 200:
+        raise RuntimeError(f"[UPSTASH] HTTP {r.status_code} {r.text[:300]}")
 
 def main():
     try:
