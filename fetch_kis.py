@@ -23,7 +23,8 @@ APP_KEY    = os.environ["KIS_APP_KEY"]
 APP_SECRET = os.environ["KIS_APP_SECRET"]
 UP_URL     = os.environ["UPSTASH_URL"].rstrip("/")   # e.g. https://xxxx.upstash.io
 UP_TOKEN   = os.environ["UPSTASH_TOKEN"]
-TICKERS    = (os.getenv("TICKERS") or "005930,000660").split(",")
+TICKERS    = (os.getenv("TICKERS") or "005930,000660,035420,035720,051910,068270,105560,000270,012330,055550,096770,066570,005380,000810,003550,034730,017670,015760,086790,251270,207940
+").split(",")
 TTL_SEC    = int(os.getenv("TTL_SEC") or "300")      # SNAP TTL (기본 300초)
 BASE       = os.getenv("KIS_BASE") or "https://openapi.koreainvestment.com:9443"
 
