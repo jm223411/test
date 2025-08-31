@@ -74,6 +74,15 @@ def upstash_hset_pipeline(key, mapping: dict, ttl_sec: int = 500):
     )
     if r.status_code != 200:
         raise RuntimeError(f"[UPSTASH] HTTP {r.status_code} {r.text[:300]}")
+requests.post(
+    f"{UP_URL}/pipeline",
+    headers={"Authorization": f"Bearer {UP_TOKEN}", "Content-Type":"application/json"},
+    json=[
+      ["LPUSH", f"SNAPSEQ:{t}", f"{now_ms}:{p}"],  # 최근점 추가 (ts:price)
+      ["LTRIM", f"SNAPSEQ:{t}", "0", "599"]        # 최근 600개(~10시간 @1min)만 유지
+    ],
+    timeout=15
+).raise_for_status()
 
 def main():
     try:
