@@ -161,16 +161,12 @@ def kis_get_price(token: str, ticker: str) -> float:
     return float(out["stck_prpr"])
 
 def kis_get_daily(token: str, ticker: str, count: int = 60) -> List[Dict]:
-    """
-    일봉 60개 조회(주말/휴일 OK). 응답 필드는 계정/환경에 따라 다를 수 있음.
-    기본 키: 'stck_bsop_date'(YYYYMMDD), 'stck_clpr'(종가)
-    """
     url = f"{BASE}/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice"
     headers = {
         "authorization": f"Bearer {token}",
         "appkey": APP_KEY,
         "appsecret": APP_SECRET,
-        "tr_id": TR_DAILY,
+        "tr_id": TR_DAILY,        # 기본값: FHKST03010100 (환경에 맞게 유지)
         "custtype": "P",
         "content-type": "application/json; charset=utf-8",
         "accept": "application/json",
@@ -178,19 +174,22 @@ def kis_get_daily(token: str, ticker: str, count: int = 60) -> List[Dict]:
     params = {
         "fid_cond_mrkt_div_code": "J",
         "fid_input_iscd": ticker,
-        "fid_org_adj_prc": "0",  # (필요 시 수정주가 1)
+        "fid_period_div_code": "D",   # ★ 누락되어 있던 부분 (일/주/월/년 구분)
+        "fid_org_adj_prc": "0",       # 필요 시 "1"
     }
     r = sess.get(url, headers=headers, params=params, timeout=20)
     if r.status_code != 200:
         print(f"[KIS][daily][{ticker}] HTTP {r.status_code} {r.text[:300]}", file=sys.stderr)
         r.raise_for_status()
     rows = r.json().get("output", []) or []
-    # 안전하게 오래된→최근 정렬 (날짜 키가 있으면 정렬)
+
+    # 오래된→최근 정렬 (날짜 키가 있다면)
     try:
         rows.sort(key=lambda d: d.get("stck_bsop_date") or d.get("bas_dt"))
     except Exception:
         pass
-    return rows[-count:]  # 최근 count개
+
+    return rows[-count:]
 
 
 # ========= 메인 로직 =========
